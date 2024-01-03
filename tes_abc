@@ -1,0 +1,8 @@
+<IfModule mod_security2.conf>
+   SecRuleRemoveById 33303
+   SecRuleRemoveById 1000051
+<LocationMatch .*>
+   SecRuleRemoveById 33303
+   SecRuleRemoveById 1000051
+</LocationMatch>
+</IfModule>
