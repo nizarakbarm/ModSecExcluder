@@ -132,8 +132,7 @@ if [ ! -z "$BY_USERNAME" ] && [ ! -z "$BY_DOMAIN" ]; then
     if [ $BY_USERNAME -eq 1 ] && [ $BY_DOMAIN -eq 1 ]; then
         EXCLUDE_METHOD=2
     fi
-fi
-if [ ! -z "$BY_USERNAME" ]; then
+elif [ ! -z "$BY_USERNAME" ]; then
     if [ $BY_USERNAME -eq 1 ]; then
         EXCLUDE_METHOD=0
     fi
