@@ -458,6 +458,7 @@ elif [ $DELETE -eq 1 ]; then
         fi
         [ $CAN_REBUILD_OR_RESTART -eq 1 ] && rebuild_or_restart "REBUILD=$REBUILD,RESTART=$RESTART"
     elif [ -n "$domain_name" ]; then
+        [ -z "$username" ] && username=$(/scripts/whoowns "$domain_name")
         if [ -z "$rule_id" ]; then
             if [ -d "/etc/apache2/conf.d/userdata/std/2_4/$username/$domain_name" ] && [ -f "/etc/apache2/conf.d/userdata/std/2_4/$username/$domain_name/modsec.conf" ]; then
                 echo "-| Delete file /etc/apache2/conf.d/userdata/std/2_4/$username/$domain_name/modsec.conf"
