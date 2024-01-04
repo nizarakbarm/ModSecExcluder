@@ -480,7 +480,7 @@ elif [ $DELETE -eq 1 ]; then
                 fi
             done
             if [ -d "/etc/apache2/conf.d/userdata/std/2_4/$username/$domain_name" ] && [ -f "/etc/apache2/conf.d/userdata/std/2_4/$username/$domain_name/modsec.conf" ]; then
-                sed -i '/^   $/d' "/etc/apache2/conf.d/userdata/std/2_4/$username/modsec.conf"
+                sed -i '/^   $/d' "/etc/apache2/conf.d/userdata/std/2_4/$username/$domain_name/modsec.conf"
             fi
         fi
         [ $CAN_REBUILD_OR_RESTART -eq 1 ] && rebuild_or_restart "REBUILD=$REBUILD,RESTART=$RESTART"
