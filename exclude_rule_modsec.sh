@@ -161,10 +161,39 @@ if [ $ADD -eq 1 ]; then
         #declare array of rule id
         declare -a rule_id_array
         sec_rule_remove_id=""
+        #declare -a past_rule_id_array
+        
+        rule_file="/etc/apache2/conf.d/userdata/std/2_4/$username/modsec.conf"
+        # if [ -s "$rule_file" ]; then
+        #     # get all past rule id
+        #     all_rule_id=$(grep -oE "[[:digit:]]+$" modsec.conf  | sort -u | tr "\n" " ")
+        #     past_rule_id_array=($(echo "${all_rule_id/ /"  "}"))
+        #     unset
+        # fi
 
         #create one or multiple SecRuleRemoveById with the rule_ids
         if [[ $rule_id =~ ^[[:digit:]]+$ ]]; then
-            sec_rule_remove_id="SecRuleRemoveById $rule_id"
+            # check if exclude rule conf file not empty
+            if [ -s "$rule_file" ]; then
+                # if rule_file not empty and there is no inputted rule_id inside rule_file then append rule_id to rule_file
+                if [[ ! $(cat "$rule_file") =~ $rule_id ]]; then 
+                    all_rule_id=$(grep -oE "[[:digit:]]+$" $rule_file  | sort -u | tr "\n" " ")
+                    rule_id_array=($(echo "${all_rule_id/ /"  "}"))
+                    unset all_rule_id
+
+                    rule_id_array+=($rule_id)
+                    for (( r=0; r<${#rule_id_array[@]}; r++)); do
+                        sec_rule_remove_id+="SecRuleRemoveById ${rule_id_array[$r]}"
+                        if [ -n "${rule_id_array[$(( $r + 1 ))]}" ]; then
+                            sec_rule_remove_id+="\n"
+                        fi
+                    done
+                else
+                    echo "Warning: rule id $rule_id is already available in $rule_file!"
+                fi
+            else
+                sec_rule_remove_id="SecRuleRemoveById $rule_id"
+            fi
         elif [[ $rule_id =~ ^[[:digit:]]+[[:space:]][[:digit:]]+$ ]]; then
             rule_id_array=($(echo "${rule_id/ /"  "}"))
             for (( r=0; r<${#rule_id_array[@]}; r++)); do
@@ -191,7 +220,7 @@ if [ $ADD -eq 1 ]; then
             echo "-= Start exclude the rule below for username $username"
             echo -e "$sec_rule_remove_id"
             [ ! -d "/etc/apache2/conf.d/userdata/std/2_4/$username" ] && mkdir "/etc/apache2/conf.d/userdata/std/2_4/$username"
-cat <<EOF>"/etc/apache2/conf.d/userdata/std/2_4/$username/modsec.conf"
+cat <<EOF>"$rule_file"
 <IfModule mod_security2.conf>
 $(echo -e "$sec_rule_remove_id")
 <LocationMatch .*>
@@ -200,7 +229,7 @@ $(echo -e "$sec_rule_remove_id")
 </IfModule>
 EOF
             #Tidy up the config
-            sed -i -E "s/^(SecRuleRemoveById .*)/   \1/g" "/etc/apache2/conf.d/userdata/std/2_4/$username/modsec.conf"
+            sed -i -E "s/^(SecRuleRemoveById .*)/   \1/g" "$rule_file"
             find /etc/apache2/conf.d/userdata -type d -exec chmod 755 {} +
             find /etc/apache2/conf.d/userdata -type f -exec chmod 644 {} +
             echo "-= Exclude rule done"
