@@ -195,7 +195,19 @@ if [ $ADD -eq 1 ]; then
                 sec_rule_remove_id="SecRuleRemoveById $rule_id"
             fi
         elif [[ $rule_id =~ ^[[:digit:]]+[[:space:]][[:digit:]]+$ ]]; then
-            rule_id_array=($(echo "${rule_id/ /"  "}"))
+            # check if rule file not empty; then add the past rule id to rule_id_array and append the inputted rule id to rule_id_array
+            # if rule file empty, only add the inputted rule id to rule_id_array
+            if [ -s "$rule_file" ]; then
+                all_rule_id=$(grep -oE "[[:digit:]]+$" $rule_file  | sort -u | tr "\n" " ")
+                rule_id_array=($(echo "${all_rule_id/ /"  "}"))
+                unset all_rule_id
+
+                rule_id_array+=($(echo "${rule_id/ /"  "}"))
+            else
+                rule_id_array=($(echo "${rule_id/ /"  "}"))
+            fi
+
+            #loop thorugh rule_id_array then create SecRuleRemoveById based on that
             for (( r=0; r<${#rule_id_array[@]}; r++)); do
                 sec_rule_remove_id+="SecRuleRemoveById ${rule_id_array[$r]}"
                 if [ -n "${rule_id_array[$(( $r + 1 ))]}" ]; then
@@ -203,7 +215,19 @@ if [ $ADD -eq 1 ]; then
                 fi
             done
         elif [[ $rule_id =~ ^[[:digit:]]+,[[:digit:]]+$ ]]; then
-            rule_id_array=($(echo "${rule_id/,/"  "}"))
+            # check if rule file not empty; then add the past rule id to rule_id_array and append the inputted rule id to rule_id_array
+            # if rule file empty, only add the inputted rule id to rule_id_array
+            if [ -s "$rule_file" ]; then
+                all_rule_id=$(grep -oE "[[:digit:]]+$" $rule_file  | sort -u | tr "\n" " ")
+                rule_id_array=($(echo "${all_rule_id/ /"  "}"))
+                unset all_rule_id
+
+                rule_id_array+=($(echo "${rule_id/,/"  "}"))
+            else
+                rule_id_array=($(echo "${rule_id/,/"  "}"))
+            fi
+            
+            #loop thorugh rule_id_array then create SecRuleRemoveById based on that
             for (( r=0; r<${#rule_id_array[@]}; r++)); do
                 sec_rule_remove_id+="SecRuleRemoveById ${rule_id_array[$r]}"
                 if [ -n "${rule_id_array[$(( $r + 1 ))]}" ]; then
